@@ -1,2 +1,2 @@
-cd C:\Users\fabio\OneDrive\Área de Trabalho\Escola\PUC\9º periodo\TCC I\Software\RedeNeuralOCR
+cd C:\Users\fabio\OneDrive\Área de Trabalho\Escola\PUC\9º periodo\TCC I\Software\OCRNet
 jupyter notebook
