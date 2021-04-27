@@ -1,2 +1,2 @@
 # OCRNet
-Rede neural MLP para reconhecimento de caracteres isolados.
+Rede neural MLP/CNN para reconhecimento de caracteres isolados.
