@@ -6,9 +6,9 @@ dir = 'data/'
 # Futuramente: Edwardian Script ITC
 FONTS = ("arial.ttf", "consola.ttf", "AGENCYR.TTF", "COLONNA.TTF", "ARLRDBD.TTF", "FRAHV.TTF",
          "JUICE___.TTF", "GOTHIC.TTF", "CHILLER.TTF", "comic.ttf", "COOPBL.TTF", "CURLZ___.TTF",
-         "JOKERMAN.TTF")
+         "JOKERMAN.TTF", "ariali.ttf", "BELLI.TTF", "couri.ttf")
 # Teste
-#fonts = ["YuGothL.ttc", "ntailu.ttf", "LATINWD.TTF", "CENTAUR.TTF"]
+#FONTS = ["YuGothL.ttc", "ntailu.ttf", "LATINWD.TTF", "CENTAUR.TTF"]
 
 PHRASES = ["abcdefghijklmnopqrstuvwxyz",
             "ABCDEFGHIJKLMNOPQRSTUVWXYZ",

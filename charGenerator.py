@@ -7,30 +7,40 @@ import numpy as np
 import sys
 
 #TODO: add numeros, caracteres especiais
-#TODO: canny nos dados
-#TODO: blur nos dados
-#TODO: verificar 's'
-#TODO: remover g de uma das fontes
-#TODO: letra t sendo cortada no topo (corrigir obtenção do tamanho da fonte)
-#TODO: obter +1 fonte linha grossa
-#TODO: 1 T parece uma foice
+#TODO: g diferente nas fontes (talvez sumir com 'g')
+#TODO: n sendo confundido com m (talvez sumir com 'm')
 
-wSize, hSize = 100, 100
-charSize = (32, 32)
+#TODO: 'L' inclinado sendo confundido com Y
+#TODO: Inverter plano de fundo?
 
-dir = 'data/train/'
-#dir = 'data/test/'
+#TYPE = "TRAIN"
+TYPE = "TEST"
+
+# Quantas vezes criar cada tipo de letra
+repeatType = 1
+# Total de imagens =  (nºchars*2 + 4)*repeatType * nº fontes
+# Imagens de cada caractere = 2 * repeatType * nº fontes
+#
+# Imagens de cada caractere = 2 * 100 * 16 = 3200
+
+WSIZE, HSIZE = 160, 150
+CHARSIZE = (32, 32)
 
 # Treino
-# Futuramente: Edwardian Script ITC
-FONTS = ("arial.ttf", "consola.ttf", "AGENCYR.TTF", "COLONNA.TTF", "ARLRDBD.TTF", "FRAHV.TTF",
-         "JUICE___.TTF", "GOTHIC.TTF", "CHILLER.TTF", "comic.ttf", "COOPBL.TTF", "CURLZ___.TTF",
-         "JOKERMAN.TTF")
+if TYPE.lower() == "train":
+    DIR = 'data/train/'
+    FONTS = ("arial.ttf", "consola.ttf", "AGENCYR.TTF", "COLONNA.TTF", "ARLRDBD.TTF", "FRAHV.TTF",
+             "JUICE___.TTF", "GOTHIC.TTF", "CHILLER.TTF", "comic.ttf", "COOPBL.TTF", "CURLZ___.TTF",
+             "JOKERMAN.TTF", "ariali.ttf", "BELLI.TTF", "couri.ttf")
 # Teste
-#FONTS = ["YuGothL.ttc", "ntailu.ttf", "LATINWD.TTF", "CENTAUR.TTF"]
+else:
+    DIR = 'data/test/'
+    FONTS = ("YuGothL.ttc", "ntailu.ttf", "LATINWD.TTF", "CENTAUR.TTF")
+
 
 # Considerações:
-# 'c' == 'C'
+# 'C' == 'c'
+# 'f' == 'F'
 # 'k' == 'K'
 # 'l' (L) ignorado por parecer com 'i' (I)
 # 'o' == 'O'
@@ -40,23 +50,22 @@ FONTS = ("arial.ttf", "consola.ttf", "AGENCYR.TTF", "COLONNA.TTF", "ARLRDBD.TTF"
 # 'v' == 'V'
 # 'w' === 'W'
 # 'x' == 'X'
+# 'Y' == 'y' 
 # 'z' == 'Z'
-CHARS = ['a', 'b', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',\
-         'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'L', 'M', 'N', 'Q', 'R', 'T', 'Y']
-        # 'ç', 'Ç', 'á', 'à', 'é', 'ê', 'ó', 'ô', 'í', 'î', 'Á', 'À', 'É', 'Ê', 'Ó', 'Ô', 'Í', 'Î']
-
-# Modo da imagem
-# 1 -> pixel só ter valor de 0 ou 1
-# "L" -> pixel varia de 0 a 255
-modoImagem = "L"
+CHARS = ['a', 'b', 'd', 'e', 'g', 'h', 'i', 'j', 'k', 'm', 'n', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'z',\
+         'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'T', 'Y']
+        #'Ç', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 # Margem na hora de recortar a imagem
 marginX = 10
 marginTop = 5
 marginBottom = 5
 
-# Quantas vezes criar cada tipo de letra
-repeatType = 40
+# Modo da imagem
+# 1 -> pixel só ter valor de 0 ou 1
+# "L" -> pixel varia de 0 a 255
+modoImagem = "L"
+
 
 n = 0
 TOTALSIZE = len(FONTS)*repeatType
@@ -64,57 +73,79 @@ for f in range(len(FONTS)):
 
     font = ImageFont.truetype(FONTS[f], 50)
 
-    def imgCreate(c, crop = True):
-        img  = Image.new(mode = modoImagem, size = (wSize, hSize))
+    def imgCreate(c, crop = True, posNoise = True):
+        img  = Image.new(mode = modoImagem, size = (WSIZE, HSIZE))
         draw = ImageDraw.Draw(img)
 
-        # Adiciona ruído à posição
+        # Calcula ruído à posição (utilizado também para decidir se aplica ruído agressivo na imagem)
         noiseX = np.random.randint(-5,5)
-        noiseY = np.random.randint(-5,5)
 
         # Adiciona ruído à imagem
-        gauss = np.random.normal(10,5,wSize*hSize) # Ruido branco
+        gauss = np.random.normal(10,5,WSIZE*HSIZE) # Ruido branco
         # Ruído "agressivo"
-        if noiseX > 3:
-            gauss += np.random.choice([0, 255], size=wSize*hSize, p=[0.6, 0.4])
+        if noiseX > 4:
+            gauss += np.random.choice([0, 255], size=WSIZE*HSIZE, p=[0.8, 0.2])
         elif noiseX > 0:
-            gauss += np.random.choice([0, 255], size=wSize*hSize, p=[0.9, 0.1])
+            gauss += np.random.choice([0, 255], size=WSIZE*HSIZE, p=[0.9, 0.1])
+
         img.putdata(gauss)
 
-        
-        draw.text((wSize//2 + noiseX, hSize//2 + noiseY), c, 255, font=font, anchor="lt")
+        # Ruído à posição
+        if posNoise:
+            noiseY = np.random.randint(-5,5)
+            draw.text((WSIZE//2 + noiseX, HSIZE//2 + noiseY), c, 255, font=font, anchor="lt")
+        else:
+            draw.text((WSIZE//2, HSIZE//2), c, 255, font=font, anchor="lt")
+
 
         # Recorta a região de interesse
         if crop:
             (w, h), _ = font.font.getsize(c)
 
-            top = hSize//2 - marginTop
-            bottom = hSize//2 + h + marginBottom
-            left = wSize//2 - marginX
-            right = wSize//2 + w + marginX
+            top = HSIZE//2
+            bottom = HSIZE//2 + h
+            left = WSIZE//2
+            right = WSIZE//2 + w
 
-            # Desenha retangulos na borda para não criar vies
-            # Aplica ~50% das vezes (usa o noiseX para determinar quando aplicar)
-            '''if noiseX < 0:
-                draw.rectangle([left+1, top+1, right-1, bottom-1], outline = 255, width = 5)'''
+            # No caso de haver ruído de posição,
+            # é importante ter uma margem para não cortar o caractere
+            if posNoise:
+                top -= marginTop
+                bottom += marginBottom
+                left -= marginX
+                right += marginX
 
             img = img.crop((left, top, right, bottom))
 
 
         # Ajusta o tamanho da imagem
-        img = img.resize(charSize)
-   
+        img = img.resize(CHARSIZE)
+
+        if noiseX > 3:
+            draw = ImageDraw.Draw(img)
+            # Desenha um retângulo 5x5 aleatório ao redor da tela
+            posX = np.random.randint(0,28)
+            posY = np.random.randint(0,28)
+            draw.rectangle((posX, posY, posX+noiseX, posY+noiseX), fill=255)
+        elif noiseX < - 3:
+            draw = ImageDraw.Draw(img)
+            # Desenha um retângulo 5x5 aleatório ao redor da tela
+            posY1 = np.random.randint(0,5)
+            posY2 = np.random.randint(0,16)
+            draw.line((0, posY1, 32, posY2), fill=255)
 
         return img
 
 
     def imgCreateBlank(strongNoise = False):
-        img  = Image.new(mode = modoImagem, size = charSize)
+        img  = Image.new(mode = modoImagem, size = CHARSIZE)
 
         if strongNoise:
-            gauss = np.random.normal(127,50,charSize[0]*charSize[1])
+            gauss = np.random.normal(127,50,CHARSIZE[0]*CHARSIZE[1])
         else:
-            gauss = np.random.normal(20,10,charSize[0]*charSize[1])
+            gauss = np.random.choice([0, 255], size=CHARSIZE[0]*CHARSIZE[1], p=[0.8, 0.2])
+
+            #gauss = np.random.normal(20,10,CHARSIZE[0]*CHARSIZE[1])
 
         img.putdata(gauss)
 
@@ -122,7 +153,7 @@ for f in range(len(FONTS)):
 
 
     def imgSave(c, img):
-        name = dir + c + str(n) + ".jpg"
+        name = DIR + c + str(n) + ".jpg"
 
         img.save(name)
 
@@ -130,56 +161,28 @@ for f in range(len(FONTS)):
     # Cria n imagens 'iguais' variando a posição
     # e adicionando ruído
     for r in range(repeatType):
-        # Caractere normal
+        # Caractere normal (sem ruído de posição)
         for c in CHARS:
-            img = imgCreate(c)
+            img = imgCreate(c, posNoise = False)
 
             imgSave(c, img)
         
             n += 1
 
-        # Caractere rotacionado 15º
+        # Caractere rotacionado -45 a 45º
+        rotation = np.random.randint(-45,45)
         for c in CHARS:
             img = imgCreate(c)
 
-            img = img.rotate(15)
+            img = img.rotate(rotation)
 
             imgSave(c, img)
         
             n += 1
 
-        # Caractere rotacionado -15º
-        for c in CHARS:
-            img = imgCreate(c)
-
-            img = img.rotate(-15)
-
-            imgSave(c, img)
-
-            n += 1
-
-        # Caractere rotacionado 30º
-        for c in CHARS:
-            img = imgCreate(c)
-
-            img = img.rotate(30)
-
-            imgSave(c, img)
-        
-            n += 1
-
-        # Caractere rotacionado -30º
-        for c in CHARS:
-            img = imgCreate(c)
-
-            img = img.rotate(-30)
-
-            imgSave(c, img)
-
-            n += 1
 
         # Imagens vazias
-        for _ in range(5):
+        for _ in range(2):
             img = imgCreateBlank()
 
             imgSave('_', img)
@@ -187,7 +190,7 @@ for f in range(len(FONTS)):
             n += 1
 
         # Imagens com ruído forte
-        for _ in range(5):
+        for _ in range(2):
             img = imgCreateBlank(strongNoise=True)
 
             imgSave('(', img)
@@ -195,5 +198,3 @@ for f in range(len(FONTS)):
             n += 1
 
         sys.stdout.write("\rConjunto de imagens processadas: %d/%d - %.1f%% - Imagens: %d"%(r + 1 + repeatType*f, TOTALSIZE, 100*(r + 1 + repeatType*f)/TOTALSIZE, n))
-        break
-    break
