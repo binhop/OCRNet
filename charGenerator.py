@@ -7,22 +7,21 @@ import numpy as np
 import sys
 import time
 
-#TODO: add numeros, caracteres especiais
 #TODO: g diferente nas fontes (talvez sumir com 'g')
-#TODO: n sendo confundido com m (talvez sumir com 'm')
+#TODO: alternar quadrado branco aleatório com quadrado preto
+#TODO: espessura da linha de tamanho variável
+#TODO: espessura da linha mais escura (115)
+#TODO: alternar cor do fundo
 
-#TODO: Inverter plano de fundo?
-#TODO: desenhar f minusculo quando for F maisuculo
-
-TYPE = "TRAIN"
-#TYPE = "TEST"
+#TYPE = "TRAIN"
+TYPE = "TEST"
 
 # Quantas vezes criar cada tipo de letra
-repeatType = 100
-# Total de imagens =  (nºchars*2 + 4)*repeatType * nº fontes
-# Imagens de cada caractere = 2 * repeatType * nº fontes
+repeatType = 50
+# Total de imagens =  (nºchars*4 + 4)*repeatType * nº fontes
+# Imagens de cada caractere = 4 * repeatType * nº fontes
 #
-# Imagens de cada caractere = 2 * 100 * 16 = 3200
+# Imagens de cada caractere = 4 * 50 * 16 = 3200
 
 WSIZE, HSIZE = 100, 100
 CHARSIZE = (32, 32)
@@ -45,7 +44,6 @@ TOTALSIZE = len(FONTS)*repeatType
 
 # Considerações:
 # 'C' == 'c'
-# 'f' == 'F'
 # 'k' == 'K'
 # 'l' (L) ignorado por parecer com 'i' (I)
 # 'o' == 'O'
@@ -57,9 +55,10 @@ TOTALSIZE = len(FONTS)*repeatType
 # 'x' == 'X'
 # 'Y' == 'y' 
 # 'z' == 'Z'
-CHARS = ['a', 'b', 'd', 'e', 'g', 'h', 'i', 'j', 'k', 'm', 'n', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'z',\
+# 'Ç' == 'ç'
+CHARS = ['a', 'b', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'm', 'n', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'z',\
          'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'T', 'Y',\
-         'Ç', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+         'Ç', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '?']
 
 # Margem na hora de recortar a imagem
 MARGINX = 10
@@ -78,7 +77,7 @@ for f in range(len(FONTS)):
 
     font = ImageFont.truetype(FONTS[f], 50)
 
-    def imgCreate(c, crop = True, posNoise = True):
+    def imgCreate(c, crop = True, posNoise = True, textWhite = True):
         img  = Image.new(mode = MODOIMAGEM, size = (WSIZE, HSIZE))
         draw = ImageDraw.Draw(img)
 
@@ -98,10 +97,22 @@ for f in range(len(FONTS)):
         # Ruído à posição
         if posNoise:
             noiseY = np.random.randint(-5,5)
-            draw.text((STARTPOSX + noiseX, STARTPOSY + noiseY), c, 255, font=font, anchor="lt")
+            posX = STARTPOSX + noiseX
+            posY = STARTPOSY + noiseY
         else:
-            draw.text((STARTPOSX, STARTPOSY), c, 255, font=font, anchor="lt")
+            posX = STARTPOSX
+            posY = STARTPOSY
 
+        # Texto branco com contorno preto
+        # ou texto preto com contorno branco
+        if textWhite:
+            fill = np.random.randint(230,255)
+            stroke = np.random.randint(0,30)
+        else:
+            fill = np.random.randint(0,30)
+            stroke = np.random.randint(230,255)
+
+        draw.text((posX, posY), c, fill, font=font, anchor="lt", stroke_width=10, stroke_fill=stroke)
 
         # Recorta a região de interesse
         if crop:
@@ -169,6 +180,9 @@ for f in range(len(FONTS)):
 
 
     def imgSave(c, img):
+        # ? não pode ser usado para nomear arquivo, então muda o nome para +
+        if c == '?':
+            c = '+'
         name = DIR + c + str(n) + ".jpg"
 
         img.save(name)
@@ -189,6 +203,26 @@ for f in range(len(FONTS)):
         rotation = np.random.randint(-45,45)
         for c in CHARS:
             img = imgCreate(c)
+
+            img = img.rotate(rotation)
+
+            imgSave(c, img)
+        
+            n += 1
+
+        # Inverte a cor
+        # Caractere normal (sem ruído de posição)
+        for c in CHARS:
+            img = imgCreate(c, posNoise = False, textWhite=False)
+
+            imgSave(c, img)
+        
+            n += 1
+
+        # Caractere rotacionado -45 a 45º
+        # Usa a rotação anterior
+        for c in CHARS:
+            img = imgCreate(c, textWhite=False)
 
             img = img.rotate(rotation)
 

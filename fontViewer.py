@@ -10,9 +10,9 @@ FONTS = ("arial.ttf", "consola.ttf", "AGENCYR.TTF", "COLONNA.TTF", "ARLRDBD.TTF"
 # Teste
 #FONTS = ["YuGothL.ttc", "ntailu.ttf", "LATINWD.TTF", "CENTAUR.TTF"]
 
-PHRASES = ["abcdefghijklmnopqrstuvwxyz",
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-            "1234567890"]
+PHRASES = ["abcçdefghijklmnopqrstuvwxyz",
+            "ABCÇDEFGHIJKLMNOPQRSTUVWXYZ",
+            "1234567890?"]
 
 for f in FONTS:
     font = ImageFont.truetype(f, 50)
