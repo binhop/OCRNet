@@ -8,13 +8,9 @@ import sys
 import time
 
 #TODO: g diferente nas fontes (talvez sumir com 'g')
-#TODO: alternar quadrado branco aleatório com quadrado preto
-#TODO: espessura da linha de tamanho variável
-#TODO: espessura da linha mais escura (115)
-#TODO: alternar cor do fundo
 
-#TYPE = "TRAIN"
-TYPE = "TEST"
+TYPE = "TRAIN"
+#TYPE = "TEST"
 
 # Quantas vezes criar cada tipo de letra
 repeatType = 50
@@ -58,7 +54,7 @@ TOTALSIZE = len(FONTS)*repeatType
 # 'Ç' == 'ç'
 CHARS = ['a', 'b', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'm', 'n', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'z',\
          'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'T', 'Y',\
-         'Ç', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '?']
+         'Ç', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '?', '/']
 
 # Margem na hora de recortar a imagem
 MARGINX = 10
@@ -73,6 +69,7 @@ MODOIMAGEM = "L"
 
 n = 0
 elapsed = time.time()
+meanElapsed = 0
 for f in range(len(FONTS)):
 
     font = ImageFont.truetype(FONTS[f], 50)
@@ -106,13 +103,15 @@ for f in range(len(FONTS)):
         # Texto branco com contorno preto
         # ou texto preto com contorno branco
         if textWhite:
-            fill = np.random.randint(230,255)
-            stroke = np.random.randint(0,30)
+            fill = np.random.randint(200,255)
+            strokeF = np.random.randint(0,115)
+            strokeW = np.random.randint(1,10)
         else:
-            fill = np.random.randint(0,30)
-            stroke = np.random.randint(230,255)
+            fill = np.random.randint(0,115)
+            strokeF = np.random.randint(200,255)
+            strokeW = np.random.randint(1,10)
 
-        draw.text((posX, posY), c, fill, font=font, anchor="lt", stroke_width=10, stroke_fill=stroke)
+        draw.text((posX, posY), c, fill, font=font, anchor="lt", stroke_width=strokeW, stroke_fill=strokeF)
 
         # Recorta a região de interesse
         if crop:
@@ -142,7 +141,10 @@ for f in range(len(FONTS)):
             # Desenha um quadrado aleatório ao redor da tela
             posX = np.random.randint(0,28)
             posY = np.random.randint(0,28)
-            draw.rectangle((posX, posY, posX+noiseX, posY+noiseX), fill=255)
+            if textWhite:
+                draw.rectangle((posX, posY, posX+noiseX, posY+noiseX), fill=255)
+            else:
+                draw.rectangle((posX, posY, posX+noiseX, posY+noiseX), fill=0) 
         elif noiseX < -4:
             draw = ImageDraw.Draw(img)
             # Desenha uma linha preta aleatória cortando a letra
@@ -183,6 +185,8 @@ for f in range(len(FONTS)):
         # ? não pode ser usado para nomear arquivo, então muda o nome para +
         if c == '?':
             c = '+'
+        elif c== '/':
+            c = '-'
         name = DIR + c + str(n) + ".jpg"
 
         img.save(name)
@@ -200,8 +204,11 @@ for f in range(len(FONTS)):
             n += 1
 
         # Caractere rotacionado -45 a 45º
+        # Não inclui a /
         rotation = np.random.randint(-45,45)
         for c in CHARS:
+            if c == '/':
+                continue
             img = imgCreate(c)
 
             img = img.rotate(rotation)
@@ -221,7 +228,10 @@ for f in range(len(FONTS)):
 
         # Caractere rotacionado -45 a 45º
         # Usa a rotação anterior
+        # Não inclui a /
         for c in CHARS:
+            if c == '/':
+                continue
             img = imgCreate(c, textWhite=False)
 
             img = img.rotate(rotation)
@@ -248,5 +258,6 @@ for f in range(len(FONTS)):
             n += 1
 
         processed = r + 1 + repeatType*f
-        sys.stdout.write("\rConjunto de imagens processadas: %d/%d - %.1f%% - Imagens: %d - ETC: %d s       "%(processed, TOTALSIZE, 100*processed/TOTALSIZE, n, (time.time() - elapsed)*(TOTALSIZE-processed)))
+        meanElapsed = ((time.time() - elapsed)*(TOTALSIZE-processed) + meanElapsed)//2
+        sys.stdout.write("\rConjunto de imagens processadas: %d/%d - %.1f%% - Imagens: %d - ETC: %d s     "%(processed, TOTALSIZE, 100*processed/TOTALSIZE, n, meanElapsed))
         elapsed = time.time()
