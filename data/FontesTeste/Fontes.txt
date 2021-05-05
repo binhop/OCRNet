@@ -1,0 +1,26 @@
+Agency FB  - AGENCYR
+Arial - arial
+Arial Rounded MT - ARLRDBD
+Arial itálico - ariali
+Bell MT Itálico - BELLI.TTF
+Chiller - CHILLER
+Colonna MT - COLLONA
+Comic Sans MS - comic
+Consolas - consola
+Cooper - COOPBL
+Courier New Itálico - couri.ttf
+Curlz MT - CURLZ__
+Century Gothic - GOTHIC
+Franklin Gothic - FRAHV.TTF
+Jokerman - JOKERMAN
+Juice ITC - JUICE___.TTF
+** reaviliar
+
+
+Fonte cursiva (ignorada):
+Brush Script MT
+Forte - FORTE
+Edwardian Script ITC - ITCEDSCR
+
+Talvez:
+Broadway - BROADW (problema no g)

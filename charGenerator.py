@@ -5,26 +5,30 @@ from PIL import ImageDraw
 import numpy as np
 
 import sys
+import time
 
 #TODO: add numeros, caracteres especiais
 #TODO: g diferente nas fontes (talvez sumir com 'g')
 #TODO: n sendo confundido com m (talvez sumir com 'm')
 
-#TODO: 'L' inclinado sendo confundido com Y
 #TODO: Inverter plano de fundo?
+#TODO: desenhar f minusculo quando for F maisuculo
 
-#TYPE = "TRAIN"
-TYPE = "TEST"
+TYPE = "TRAIN"
+#TYPE = "TEST"
 
 # Quantas vezes criar cada tipo de letra
-repeatType = 1
+repeatType = 100
 # Total de imagens =  (nºchars*2 + 4)*repeatType * nº fontes
 # Imagens de cada caractere = 2 * repeatType * nº fontes
 #
 # Imagens de cada caractere = 2 * 100 * 16 = 3200
 
-WSIZE, HSIZE = 160, 150
+WSIZE, HSIZE = 100, 100
 CHARSIZE = (32, 32)
+
+STARTPOSX = 20
+STARTPOSY = 20
 
 # Treino
 if TYPE.lower() == "train":
@@ -37,6 +41,7 @@ else:
     DIR = 'data/test/'
     FONTS = ("YuGothL.ttc", "ntailu.ttf", "LATINWD.TTF", "CENTAUR.TTF")
 
+TOTALSIZE = len(FONTS)*repeatType
 
 # Considerações:
 # 'C' == 'c'
@@ -53,28 +58,28 @@ else:
 # 'Y' == 'y' 
 # 'z' == 'Z'
 CHARS = ['a', 'b', 'd', 'e', 'g', 'h', 'i', 'j', 'k', 'm', 'n', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'z',\
-         'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'T', 'Y']
-        #'Ç', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+         'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'T', 'Y',\
+         'Ç', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 # Margem na hora de recortar a imagem
-marginX = 10
-marginTop = 5
-marginBottom = 5
+MARGINX = 10
+MARGINTOP = 5
+MARGINBOTTOM = 5
 
 # Modo da imagem
 # 1 -> pixel só ter valor de 0 ou 1
 # "L" -> pixel varia de 0 a 255
-modoImagem = "L"
+MODOIMAGEM = "L"
 
 
 n = 0
-TOTALSIZE = len(FONTS)*repeatType
+elapsed = time.time()
 for f in range(len(FONTS)):
 
     font = ImageFont.truetype(FONTS[f], 50)
 
     def imgCreate(c, crop = True, posNoise = True):
-        img  = Image.new(mode = modoImagem, size = (WSIZE, HSIZE))
+        img  = Image.new(mode = MODOIMAGEM, size = (WSIZE, HSIZE))
         draw = ImageDraw.Draw(img)
 
         # Calcula ruído à posição (utilizado também para decidir se aplica ruído agressivo na imagem)
@@ -93,27 +98,27 @@ for f in range(len(FONTS)):
         # Ruído à posição
         if posNoise:
             noiseY = np.random.randint(-5,5)
-            draw.text((WSIZE//2 + noiseX, HSIZE//2 + noiseY), c, 255, font=font, anchor="lt")
+            draw.text((STARTPOSX + noiseX, STARTPOSY + noiseY), c, 255, font=font, anchor="lt")
         else:
-            draw.text((WSIZE//2, HSIZE//2), c, 255, font=font, anchor="lt")
+            draw.text((STARTPOSX, STARTPOSY), c, 255, font=font, anchor="lt")
 
 
         # Recorta a região de interesse
         if crop:
             (w, h), _ = font.font.getsize(c)
 
-            top = HSIZE//2
-            bottom = HSIZE//2 + h
-            left = WSIZE//2
-            right = WSIZE//2 + w
+            top = STARTPOSY
+            bottom = STARTPOSY + h
+            left = STARTPOSX
+            right = STARTPOSX + w
 
             # No caso de haver ruído de posição,
             # é importante ter uma margem para não cortar o caractere
             if posNoise:
-                top -= marginTop
-                bottom += marginBottom
-                left -= marginX
-                right += marginX
+                top -= MARGINTOP
+                bottom += MARGINBOTTOM
+                left -= MARGINX
+                right += MARGINX
 
             img = img.crop((left, top, right, bottom))
 
@@ -123,31 +128,42 @@ for f in range(len(FONTS)):
 
         if noiseX > 3:
             draw = ImageDraw.Draw(img)
-            # Desenha um retângulo 5x5 aleatório ao redor da tela
+            # Desenha um quadrado aleatório ao redor da tela
             posX = np.random.randint(0,28)
             posY = np.random.randint(0,28)
             draw.rectangle((posX, posY, posX+noiseX, posY+noiseX), fill=255)
-        elif noiseX < - 3:
+        elif noiseX < -4:
             draw = ImageDraw.Draw(img)
-            # Desenha um retângulo 5x5 aleatório ao redor da tela
-            posY1 = np.random.randint(0,5)
-            posY2 = np.random.randint(0,16)
-            draw.line((0, posY1, 32, posY2), fill=255)
+            # Desenha uma linha preta aleatória cortando a letra
+            posY1 = np.random.randint(0,25)
+            posY2 = np.random.randint(0,25)
+            draw.line((0, posY1, 32, posY2), fill=0, width=2)
+        elif noiseX < -3:
+            draw = ImageDraw.Draw(img)
+            # Desenha uma linha branca aleatória cortando a letra
+            posY1 = np.random.randint(0,25)
+            posY2 = np.random.randint(0,25)
+            draw.line((0, posY1, 32, posY2), fill=255, width=2)
 
         return img
 
 
     def imgCreateBlank(strongNoise = False):
-        img  = Image.new(mode = modoImagem, size = CHARSIZE)
+        img  = Image.new(mode = MODOIMAGEM, size = CHARSIZE)
 
         if strongNoise:
             gauss = np.random.normal(127,50,CHARSIZE[0]*CHARSIZE[1])
         else:
             gauss = np.random.choice([0, 255], size=CHARSIZE[0]*CHARSIZE[1], p=[0.8, 0.2])
 
-            #gauss = np.random.normal(20,10,CHARSIZE[0]*CHARSIZE[1])
-
         img.putdata(gauss)
+
+        draw = ImageDraw.Draw(img)
+        # Desenha um quadrado aleatório ao redor da tela
+        posX = np.random.randint(0,28)
+        posY = np.random.randint(0,28)
+        size = np.random.randint(-5,5)
+        draw.rectangle((posX, posY, posX+size, posY+size), fill=255)
 
         return img
 
@@ -197,4 +213,6 @@ for f in range(len(FONTS)):
 
             n += 1
 
-        sys.stdout.write("\rConjunto de imagens processadas: %d/%d - %.1f%% - Imagens: %d"%(r + 1 + repeatType*f, TOTALSIZE, 100*(r + 1 + repeatType*f)/TOTALSIZE, n))
+        processed = r + 1 + repeatType*f
+        sys.stdout.write("\rConjunto de imagens processadas: %d/%d - %.1f%% - Imagens: %d - ETC: %d s       "%(processed, TOTALSIZE, 100*processed/TOTALSIZE, n, (time.time() - elapsed)*(TOTALSIZE-processed)))
+        elapsed = time.time()
