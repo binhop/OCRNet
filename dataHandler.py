@@ -3,6 +3,7 @@ from PIL import Image
 import random
 import numpy as np
 
+import sys
 
 class dataHandler():
     '''Contém funções para ler imagens de caracteres
@@ -24,26 +25,31 @@ class dataHandler():
                nShuffle: quantidade de vezes para
                          embaralhar dados
         '''
-        for f in os.listdir(dir + "train/"):
-            img = Image.open(dir + "train/" + f)
+        files = os.listdir(dir + "train/")
+        for i in range(len(files)):
+            img = Image.open(dir + "train/" + files[i])
             feature = list(img.getdata())
             
             self.train_features.append(feature)
-            # Letras minúsculas == letras maísculas
-            #self.train_labels.append(f[0].lower())
-            self.train_labels.append(f[0])
+
+            self.train_labels.append(files[i][0])
+            
+            sys.stdout.write("\rDados de treino processados: %d/%d "%(i+1, len(files)))
+        
 
         self.train_features = np.array(self.train_features)
         self.train_labels = np.array(self.train_labels)
 
-        for f in os.listdir(dir + "test/"):
-            img = Image.open(dir + "test/" + f)
+        files = os.listdir(dir + "test/")
+        for i in range(len(files)):
+            img = Image.open(dir + "test/" + files[i])
             feature = list(img.getdata())
             
             self.test_features.append(feature)
-            # Letras minúsculas == letras maísculas
-            #self.test_labels.append(f[0].lower())
-            self.test_labels.append(f[0])
+
+            self.test_labels.append(files[i][0])
+
+            sys.stdout.write("\rDados de teste processados: %d/%d "%(i+1, len(files)))
         
         self.test_features = np.array(self.test_features)
         self.test_labels = np.array(self.test_labels)

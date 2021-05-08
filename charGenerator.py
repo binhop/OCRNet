@@ -7,7 +7,7 @@ import numpy as np
 import sys
 import time
 
-#TODO: g diferente nas fontes (talvez sumir com 'g')
+#TODO: garantir letras pretas 0 e fundo branco 255 com contorno pequeno
 
 TYPE = "TRAIN"
 #TYPE = "TEST"
@@ -29,8 +29,8 @@ STARTPOSY = 20
 if TYPE.lower() == "train":
     DIR = 'data/train/'
     FONTS = ("arial.ttf", "consola.ttf", "AGENCYR.TTF", "COLONNA.TTF", "ARLRDBD.TTF", "FRAHV.TTF",
-             "JUICE___.TTF", "GOTHIC.TTF", "CHILLER.TTF", "comic.ttf", "COOPBL.TTF", "CURLZ___.TTF",
-             "JOKERMAN.TTF", "ariali.ttf", "BELLI.TTF", "couri.ttf")
+            "JUICE___.TTF", "GOTHIC.TTF", "CHILLER.TTF", "comic.ttf", "COOPBL.TTF", "CURLZ___.TTF",
+            "JOKERMAN.TTF", "ariali.ttf", "BELLI.TTF", "couri.ttf")
 # Teste
 else:
     DIR = 'data/test/'
@@ -52,12 +52,12 @@ TOTALSIZE = len(FONTS)*repeatType
 # 'Y' == 'y' 
 # 'z' == 'Z'
 # 'Ç' == 'ç'
-CHARS = ['a', 'b', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'm', 'n', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'z',\
-         'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'T', 'Y',\
-         'Ç', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '?', '/']
+CHARS = ['a', 'b', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'm', 'n', 'q', 'r', 's', 't', 'v', 'x', 'z',\
+         'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'T', 'U', 'Y', 'W',\
+         'Ç', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '?', '/', '%']
 
 # Margem na hora de recortar a imagem
-MARGINX = 10
+MARGINX = 8
 MARGINTOP = 5
 MARGINBOTTOM = 5
 
@@ -74,7 +74,7 @@ for f in range(len(FONTS)):
 
     font = ImageFont.truetype(FONTS[f], 50)
 
-    def imgCreate(c, crop = True, posNoise = True, textWhite = True):
+    def imgCreate(c, crop = True, posNoise = True, textWhite = True):            
         img  = Image.new(mode = MODOIMAGEM, size = (WSIZE, HSIZE))
         draw = ImageDraw.Draw(img)
 
@@ -107,9 +107,10 @@ for f in range(len(FONTS)):
             strokeF = np.random.randint(0,115)
             strokeW = np.random.randint(1,10)
         else:
-            fill = np.random.randint(0,115)
             strokeF = np.random.randint(200,255)
-            strokeW = np.random.randint(1,10)
+            strokeW = np.random.randint(2,10)
+            fill = np.random.randint(0,10*strokeW)
+
 
         draw.text((posX, posY), c, fill, font=font, anchor="lt", stroke_width=strokeW, stroke_fill=strokeF)
 
@@ -130,11 +131,17 @@ for f in range(len(FONTS)):
                 left -= MARGINX
                 right += MARGINX
 
+            left -= strokeW
+            right += strokeW
+            top -= strokeW
+            bottom += strokeW
+
             img = img.crop((left, top, right, bottom))
 
 
         # Ajusta o tamanho da imagem
-        img = img.resize(CHARSIZE)
+        #img = imgResize(img, CHARSIZE)
+        img = img.resize((32,32), Image.BICUBIC)
 
         if noiseX > 3:
             draw = ImageDraw.Draw(img)
@@ -161,6 +168,46 @@ for f in range(len(FONTS)):
         return img
 
 
+    def imgResize(img, size):
+        '''Redimensiona o tamanho da imagem mantendo a proporção
+
+            Args:
+                img: imagem para redimensionar
+                size: tamanho desejado em formato de tuple (w,h)
+        '''
+
+        w, h = img.size            
+
+        if w > h:
+            blank = np.zeros((32,32), dtype=np.uint8)
+
+            img = img.resize((32, int(h*32/w)))
+            h = img.size[1]
+            offset = (32-h)//2
+
+            img = np.array(img.getdata())
+            img = img.reshape(h, 32)
+            blank[offset:offset+h, :] = img[:,:]
+
+            img = Image.fromarray(blank)
+        elif h > w:
+            blank = np.zeros((32,32), dtype=np.uint8)
+
+            img = img.resize((int(w*32/h), 32))
+            w = img.size[0]
+            offset = (32-w)//2
+            
+            img = np.array(img.getdata())
+            img = img.reshape(32, w)
+            blank[:, offset:offset+w] = img[:,:]
+
+            img = Image.fromarray(blank)
+        else:
+            img = img.resize((32, 32))
+        
+        return img
+
+    
     def imgCreateBlank(strongNoise = False):
         img  = Image.new(mode = MODOIMAGEM, size = CHARSIZE)
 
@@ -182,7 +229,8 @@ for f in range(len(FONTS)):
 
 
     def imgSave(c, img):
-        # ? não pode ser usado para nomear arquivo, então muda o nome para +
+        # ? e / não podem ser usados para nomear arquivo,
+        # então muda o nome para outro simbolo
         if c == '?':
             c = '+'
         elif c== '/':
@@ -240,22 +288,6 @@ for f in range(len(FONTS)):
         
             n += 1
 
-
-        # Imagens vazias
-        for _ in range(2):
-            img = imgCreateBlank()
-
-            imgSave('_', img)
-
-            n += 1
-
-        # Imagens com ruído forte
-        for _ in range(2):
-            img = imgCreateBlank(strongNoise=True)
-
-            imgSave('(', img)
-
-            n += 1
 
         processed = r + 1 + repeatType*f
         meanElapsed = ((time.time() - elapsed)*(TOTALSIZE-processed) + meanElapsed)//2
