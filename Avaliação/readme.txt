@@ -17,3 +17,10 @@ Rede CNN batch_size 128: 96,30 %
 • Rede 4:
 CNN c/ 1 Fully connected layer - 512
 Rede CNN batch_size 128: 96,10 %
+
+
+Dados: Letras e numeros (incluindo Ç, ? e /)
+• Rede 5:
+CNN c/ 1 Fully connected layer - 512
+       80 filtros 1a camada e 64 2a
+Rede CNN batch_size 256: 94,97 %	
