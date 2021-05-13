@@ -6,11 +6,12 @@ import numpy as np
 
 import sys
 import time
+import csv
 
 #TODO: garantir letras pretas 0 e fundo branco 255 com contorno pequeno
 
-TYPE = "TRAIN"
-#TYPE = "TEST"
+#TYPE = "TRAIN"
+TYPE = "TEST"
 
 # Quantas vezes criar cada tipo de letra
 repeatType = 50
@@ -54,7 +55,7 @@ TOTALSIZE = len(FONTS)*repeatType
 # 'Ç' == 'ç'
 CHARS = ['a', 'b', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'm', 'n', 'q', 'r', 's', 't', 'v', 'x', 'z',\
          'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'T', 'U', 'Y', 'W',\
-         'Ç', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '?', '/', '%']
+         'Ç', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '?', '/', '%', ')', '(', '!']
 
 # Margem na hora de recortar a imagem
 MARGINX = 8
@@ -65,6 +66,11 @@ MARGINBOTTOM = 5
 # 1 -> pixel só ter valor de 0 ou 1
 # "L" -> pixel varia de 0 a 255
 MODOIMAGEM = "L"
+
+
+# Apaga o arquivo
+with open("data/" + TYPE + ".csv", 'w') as file:
+    writer = csv.writer(file, delimiter='|')
 
 
 n = 0
@@ -228,6 +234,14 @@ for f in range(len(FONTS)):
         return img
 
 
+    def imgSaveCSV(c, img):
+        name = DIR + c + str(n) + ".jpg"
+        
+        with open("data/" + TYPE + ".csv", 'a') as file:
+            writer = csv.writer(file, delimiter='|')
+            writer.writerow([list(img.getdata()), c])
+
+
     def imgSave(c, img):
         # ? e / não podem ser usados para nomear arquivo,
         # então muda o nome para outro simbolo
@@ -238,7 +252,7 @@ for f in range(len(FONTS)):
         name = DIR + c + str(n) + ".jpg"
 
         img.save(name)
-
+            
 
     # Cria n imagens 'iguais' variando a posição
     # e adicionando ruído
@@ -247,21 +261,21 @@ for f in range(len(FONTS)):
         for c in CHARS:
             img = imgCreate(c, posNoise = False)
 
-            imgSave(c, img)
+            imgSaveCSV(c, img)
         
             n += 1
 
         # Caractere rotacionado -45 a 45º
-        # Não inclui a /
+        # Não inclui / ( ) !
         rotation = np.random.randint(-45,45)
         for c in CHARS:
-            if c == '/':
+            if c == '/' or c == '(' or c == ')' or c == '!':
                 continue
             img = imgCreate(c)
 
             img = img.rotate(rotation)
 
-            imgSave(c, img)
+            imgSaveCSV(c, img)
         
             n += 1
 
@@ -270,21 +284,21 @@ for f in range(len(FONTS)):
         for c in CHARS:
             img = imgCreate(c, posNoise = False, textWhite=False)
 
-            imgSave(c, img)
+            imgSaveCSV(c, img)
         
             n += 1
 
         # Caractere rotacionado -45 a 45º
         # Usa a rotação anterior
-        # Não inclui a /
+        # Não inclui a / ( ) !
         for c in CHARS:
-            if c == '/':
+            if c == '/' or c == '(' or c == ')' or c  == '!':
                 continue
             img = imgCreate(c, textWhite=False)
 
             img = img.rotate(rotation)
 
-            imgSave(c, img)
+            imgSaveCSV(c, img)
         
             n += 1
 

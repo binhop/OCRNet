@@ -1,6 +1,5 @@
-import os
-from PIL import Image
-import random
+import csv
+
 import numpy as np
 
 import sys
@@ -25,32 +24,52 @@ class DataHandler():
                nShuffle: quantidade de vezes para
                          embaralhar dados
         '''
-        files = os.listdir(dir + "train/")
-        for i in range(len(files)):
-            img = Image.open(dir + "train/" + files[i])
-            feature = list(img.getdata())
-            
-            self.train_features.append(feature)
 
-            self.train_labels.append(files[i][0])
-            
-            sys.stdout.write("\rDados de treino processados: %d/%d "%(i+1, len(files)))
         
+        with open(dir + "TRAIN.csv", 'r') as file:
+            reader = csv.reader(file, delimiter='|')
+            size = sum(1 for line in reader)
 
+            # Reinicia o ponteiro
+            file.seek(0)
+            reader = csv.reader(file, delimiter='|')
+            
+            n = 0
+            for line in reader:
+                if not line:
+                    continue
+                
+                feature = line[0][1:-1]
+                feature = np.fromstring(feature, dtype=np.uint8, sep =",")
+                self.train_features.append(feature)
+                self.train_labels.append(line[1])
+                n += 1
+                sys.stdout.write("\rDados de treino processados: %d/%d "%(n, size))
+            
         self.train_features = np.array(self.train_features)
         self.train_labels = np.array(self.train_labels)
 
-        files = os.listdir(dir + "test/")
-        for i in range(len(files)):
-            img = Image.open(dir + "test/" + files[i])
-            feature = list(img.getdata())
+        with open(dir + "TEST.csv", 'r') as file:
+            reader = csv.reader(file, delimiter='|')
+            size = sum(1 for line in reader)
+
+            # Reinicia o ponteiro
+            file.seek(0)
+            reader = csv.reader(file, delimiter='|')
             
-            self.test_features.append(feature)
+            n = 0
+            for line in reader:
+                if not line:
+                    continue
+                
+                feature = line[0][1:-1]
+                feature = np.fromstring(feature, dtype=np.uint8, sep =",")
+                self.test_features.append(feature)
+                self.test_labels.append(line[1])
+                n += 1
+                sys.stdout.write("\rDados de teste processados: %d/%d     "%(n, size))
+            
 
-            self.test_labels.append(files[i][0])
-
-            sys.stdout.write("\rDados de teste processados: %d/%d    "%(i+1, len(files)))
-        
         self.test_features = np.array(self.test_features)
         self.test_labels = np.array(self.test_labels)
 
